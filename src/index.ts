@@ -41,9 +41,9 @@ async function listen(port: number) {
 async function main() {
   try {
     await listen(4000)
-    console.log('🚀 Server is ready at http://localhost:4000/graphql')
+    console.log('Server is ready at http://localhost:4000/graphql')
   } catch (err) {
-    console.error('💀 Error starting the node server', err)
+    console.error('Error starting the node server', err)
   }
 }
 

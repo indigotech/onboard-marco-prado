@@ -45,10 +45,10 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             yield listen(4000);
-            console.log('🚀 Server is ready at http://localhost:4000/graphql');
+            console.log('Server is ready at http://localhost:4000/graphql');
         }
         catch (err) {
-            console.error('💀 Error starting the node server', err);
+            console.error('Error starting the node server', err);
         }
     });
 }
