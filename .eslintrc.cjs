@@ -10,7 +10,12 @@ module.exports = {
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
+<<<<<<< HEAD
         "ecmaVersion": 13
+=======
+        "ecmaVersion": 13,
+        "sourceType": "module"
+>>>>>>> 639dcfa (feat: add prettier and eslint setup)
     },
     "plugins": [
         "@typescript-eslint"
