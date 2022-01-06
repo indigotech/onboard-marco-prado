@@ -1,10 +1,31 @@
-import apolloExpress from "apollo-server-express";
-import apolloCore from "apollo-server-core";
-import express from "express";
-import http from "http";
+import 'reflect-metadata';
+import { ApolloServer, gql } from 'apollo-server-express';
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import express from 'express';
+import * as http from 'http';
+import { createConnection } from 'typeorm';
+import { User } from './entity/User';
 
-const { ApolloServer, gql } = apolloExpress;
-const { ApolloServerPluginDrainHttpServer } = apolloCore;
+createConnection({
+  type: 'postgres',
+  host: 'localhost',
+  port: 5432,
+  username: 'local-admin',
+  password: 'localpswd',
+  database: 'local-db',
+  synchronize: true,
+  logging: false,
+  entities: [User],
+})
+  .then(async (connection) => {
+    const user = new User();
+    user.name = 'Marco';
+    user.email = 'marco.prado@taqtile.com.br';
+
+    await connection.manager.save(user);
+    console.log('User saved. User id: ', user.id);
+  })
+  .catch((error) => console.log(error));
 
 const typeDefs = gql`
   type Query {
