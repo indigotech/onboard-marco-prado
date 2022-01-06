@@ -6,6 +6,7 @@ import * as http from 'http';
 import { createConnection } from 'typeorm';
 import { User } from './entity/User';
 
+// database typeorm connection
 createConnection({
   type: 'postgres',
   host: 'localhost',
@@ -27,6 +28,7 @@ createConnection({
   })
   .catch((error) => console.log(error));
 
+//graphql server
 const typeDefs = gql`
   type Query {
     hello: String
