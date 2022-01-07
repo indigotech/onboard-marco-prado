@@ -17,8 +17,7 @@ Run `docker-compose up -d`
 Run `npm run dev`
 
 ### Testing the Server
-Open `http://localhost:4000/graphql`
-Run the following query:
+Open `http://localhost:4000/graphql` and run the following query:
 ```
 query TestHello{
   hello
