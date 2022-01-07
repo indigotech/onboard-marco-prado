@@ -1,10 +1,12 @@
 {
   "name": "onboard-marco-prado",
   "version": "1.0.0",
-  "description": "back-end onboard project",
+  "description": "## Project's Description This is my back-end onboard project for Taqtile",
   "main": "index.js",
+  "type": "module",
+  "exports": "./dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --watch './src/**/*.{ts,graphql}' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -17,8 +19,16 @@
   },
   "homepage": "https://github.com/indigotech/onboard-marco-prado#readme",
   "dependencies": {
+    "apollo-server-core": "3.6.1",
+    "apollo-server-express": "3.6.1",
     "express": "4.17.2",
-    "express-graphql": "0.12.0",
     "graphql": "16.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.13",
+    "@types/node": "17.0.8",
+    "nodemon": "2.0.15",
+    "ts-node": "10.4.0",
+    "typescript": "4.5.4"
   }
 }
