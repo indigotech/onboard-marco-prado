@@ -9,30 +9,20 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { UserInput } from './UserInput';
 
-async function setupDatabase() {
-  createConnection({
-    type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'local-admin',
-    password: 'localpswd',
-    database: 'local-db',
-    synchronize: true,
-    logging: false,
-    entities: [User],
-  })
-    .then(async (connection) => {
-      const user = new User();
-      user.name = 'Marco';
-      user.email = 'marco.prado@taqtile.com.br';
-      user.password = 'pswd';
-      user.birthDate = new Date('04-01-2000');
+//database setup
+const dbConnection = createConnection({
+  type: 'postgres',
+  host: 'localhost',
+  port: 5432,
+  username: 'local-admin',
+  password: 'localpswd',
+  database: 'local-db',
+  synchronize: true,
+  logging: false,
+  entities: [User],
+});
 
-      await connection.manager.save(user);
-      console.log('User saved. User id: ', user.id);
-    })
-    .catch((error) => console.log(error));
-}
+//graphql server
 const resolvers = {
   Query: {
     hello() {
@@ -40,14 +30,27 @@ const resolvers = {
     },
   },
   Mutation: {
-    createUser: (_: undefined, args: UserInput) => {
+    createUser: async (_: undefined, args: UserInput) => {
       const newUser = {
-        id: 1,
+        id: 0,
         name: args.data.name,
         email: args.data.email,
         password: args.data.password,
         birthDate: args.data.birthDate,
       };
+
+      await dbConnection
+        .then(async (connection) => {
+          const user = new User();
+          user.name = newUser.name;
+          user.email = newUser.email;
+          user.password = newUser.password;
+          user.birthDate = new Date(newUser.birthDate);
+          await connection.manager.save(user);
+          newUser.id = user.id;
+          console.log('User saved. User id: ', user.id);
+        })
+        .catch((error) => console.log(error));
       return newUser;
     },
   },
