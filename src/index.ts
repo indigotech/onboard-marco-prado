@@ -42,7 +42,7 @@ const resolvers = {
       await userRepository.insert(user);
       return user;
     },
-  },
+  }
 };
 
 async function listen(port: number) {
