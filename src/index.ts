@@ -3,24 +3,26 @@ import { ApolloServer } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import * as express from 'express';
 import * as http from 'http';
-import { createConnection } from 'typeorm';
+import { createConnection, getConnection } from 'typeorm';
 import { User } from './entity/User';
 import * as fs from 'fs';
 import * as path from 'path';
 import { UserInput } from './UserInput';
 
 //database setup
-const dbConnection = createConnection({
-  type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'local-admin',
-  password: 'localpswd',
-  database: 'local-db',
-  synchronize: true,
-  logging: false,
-  entities: [User],
-});
+async function setupDatabase() {
+  createConnection({
+    type: 'postgres',
+    host: 'localhost',
+    port: 5432,
+    username: 'local-admin',
+    password: 'localpswd',
+    database: 'local-db',
+    synchronize: true,
+    logging: false,
+    entities: [User],
+  });
+}
 
 //graphql server
 const resolvers = {
@@ -31,27 +33,15 @@ const resolvers = {
   },
   Mutation: {
     createUser: async (_: undefined, args: UserInput) => {
-      const newUser = {
-        id: 0,
-        name: args.data.name,
-        email: args.data.email,
-        password: args.data.password,
-        birthDate: args.data.birthDate,
-      };
-
-      await dbConnection
-        .then(async (connection) => {
-          const user = new User();
-          user.name = newUser.name;
-          user.email = newUser.email;
-          user.password = newUser.password;
-          user.birthDate = new Date(newUser.birthDate);
-          await connection.manager.save(user);
-          newUser.id = user.id;
-          console.log('User saved. User id: ', user.id);
-        })
-        .catch((error) => console.log(error));
-      return newUser;
+      const user = new User();
+      const userRepository = getConnection().manager.getRepository(User);
+      user.name = args.data.name;
+      user.email = args.data.email;
+      user.password = args.data.password;
+      user.birthDate = new Date(args.data.birthDate);
+      await userRepository.insert(user);
+      console.log('User saved. User id: ', user.id);
+      return user;
     },
   },
 };
@@ -74,7 +64,6 @@ async function listen(port: number) {
 
 async function main() {
   await setupDatabase();
-
   try {
     await listen(4000);
     console.log("Server is ready at http://localhost:4000/graphql");
