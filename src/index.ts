@@ -33,7 +33,6 @@ async function setupDatabase() {
     })
     .catch((error) => console.log(error));
 }
-
 const resolvers = {
   Query: {
     hello() {
