@@ -4,7 +4,8 @@
   "description": "## Project's Description This is my back-end onboard project for Taqtile",
   "main": "index.ts",
   "scripts": {
-    "dev": "nodemon --watch './src/**/*.{ts,graphql}' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts"
+    "dev": "nodemon --watch './src/**/*.{ts.graphql}' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
+    "test": "mocha -r ts-node/register test/index.ts"
   },
   "repository": {
     "type": "git",
@@ -28,13 +29,17 @@
   },
   "devDependencies": {
     "@types/express": "4.17.13",
+    "@types/mocha": "^9.0.0",
     "@types/node": "17.0.8",
+    "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
+    "mocha": "9.1.3",
     "nodemon": "2.0.15",
     "prettier": "2.5.1",
+    "supertest": "^6.1.6",
     "ts-node": "10.4.0",
     "typescript": "4.5.4"
   },
