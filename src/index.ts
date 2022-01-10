@@ -11,7 +11,7 @@ import { UserInput } from './UserInput';
 
 //database setup
 async function setupDatabase() {
-  createConnection({
+  await createConnection({
     type: 'postgres',
     host: 'localhost',
     port: 5432,
@@ -34,13 +34,12 @@ const resolvers = {
   Mutation: {
     createUser: async (_: undefined, args: UserInput) => {
       const user = new User();
-      const userRepository = getConnection().manager.getRepository(User);
+      const userRepository = getConnection().getRepository(User);
       user.name = args.data.name;
       user.email = args.data.email;
       user.password = args.data.password;
       user.birthDate = new Date(args.data.birthDate);
       await userRepository.insert(user);
-      console.log('User saved. User id: ', user.id);
       return user;
     },
   },
