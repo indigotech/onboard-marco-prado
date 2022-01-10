@@ -7,7 +7,7 @@ import { createConnection, getConnection } from 'typeorm';
 import { User } from './entity/User';
 import * as fs from 'fs';
 import * as path from 'path';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 
 //database setup
@@ -41,7 +41,7 @@ const resolvers = {
       user.password = crypto.createHash('sha256').update(args.data.password).digest('hex');;
       user.birthDate = new Date(args.data.birthDate);
 
-      if (user.password.length < 6 || !/\d/.test(user.password) || !/[A-Za-z]/.test(user.password)) {
+      if (args.data.password.length < 6 || !/\d/.test(args.data.password) || !/[A-Za-z]/.test(args.data.password)) {
         throw new Error('Weak password!');
       }
       const countUsers = await userRepository.count({ email: user.email });
