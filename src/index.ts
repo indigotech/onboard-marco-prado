@@ -1,15 +1,14 @@
 import 'reflect-metadata';
 import { ApolloServer } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import express from 'express';
+import * as express from 'express';
 import * as http from 'http';
 import { createConnection } from 'typeorm';
 import { User } from './entity/User';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { UserInput } from './UserInput';
 
-// database typeorm connection
 async function setupDatabase() {
   createConnection({
     type: 'postgres',
@@ -34,7 +33,7 @@ async function setupDatabase() {
     })
     .catch((error) => console.log(error));
 }
-//graphql server
+
 const resolvers = {
   Query: {
     hello() {
