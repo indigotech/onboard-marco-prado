@@ -49,7 +49,6 @@ const resolvers = {
       if (countUsers > 0) {
         throw new Error('This e-mail is already being used!');
       }
-
       await userRepository.insert(user);
       return user;
     },
