@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import { ApolloServer } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import express from 'express';
+import * as express from 'express';
 import * as http from 'http';
 import { createConnection, getConnection } from 'typeorm';
 import { User } from './entity/User';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 
 //database setup
@@ -25,7 +25,6 @@ export async function setupDatabase() {
   });
 }
 
-//graphql server
 const resolvers = {
   Query: {
     hello() {

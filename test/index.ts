@@ -1,5 +1,5 @@
 import { setupDatabase, setupServer } from '../src/setup';
-import request from 'supertest';
+import * as request from 'supertest';
 
 before(async () => {
   await setupDatabase();
