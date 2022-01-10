@@ -1,5 +1,6 @@
 import { setupDatabase, setupServer } from '../src/setup';
-import * as request from 'supertest';
+import request from 'supertest';
+import { expect } from 'chai';
 
 before(async () => {
   await setupDatabase();
@@ -9,6 +10,6 @@ before(async () => {
 describe('Hello test', () => {
   it('Hello query', async () => {
     const res = await request('localhost:4000').post('/graphql').send({ query: '{hello}' });
-    console.log(res.body);
+    expect(res.body.data.hello).to.be.eq('Hello, world!');
   });
 });
