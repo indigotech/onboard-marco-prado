@@ -10,7 +10,7 @@ import path from 'path';
 import { UserInput } from './UserInput';
 
 // database typeorm connection
-function setupDatabase() {
+async function setupDatabase() {
   createConnection({
     type: 'postgres',
     host: 'localhost',
@@ -68,11 +68,11 @@ async function listen(port: number) {
 
   server.applyMiddleware({ app });
 
-  await httpServer.listen(port);
+  httpServer.listen(port);
 }
 
 async function main() {
-  setupDatabase();
+  await setupDatabase();
 
   try {
     await listen(4000);
