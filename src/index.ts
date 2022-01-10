@@ -3,14 +3,15 @@ import { ApolloServer } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import * as express from 'express';
 import * as http from 'http';
-import { createConnection } from 'typeorm';
+import { createConnection, getConnection } from 'typeorm';
 import { User } from './entity/User';
 import * as fs from 'fs';
 import * as path from 'path';
 import { UserInput } from './UserInput';
 
+//database setup
 async function setupDatabase() {
-  createConnection({
+  await createConnection({
     type: 'postgres',
     host: 'localhost',
     port: 5432,
@@ -20,20 +21,10 @@ async function setupDatabase() {
     synchronize: true,
     logging: false,
     entities: [User],
-  })
-    .then(async (connection) => {
-      const user = new User();
-      user.name = 'Marco';
-      user.email = 'marco.prado@taqtile.com.br';
-      user.password = 'pswd';
-      user.birthDate = new Date('04-01-2000');
-
-      await connection.manager.save(user);
-      console.log('User saved. User id: ', user.id);
-    })
-    .catch((error) => console.log(error));
+  });
 }
 
+//graphql server
 const resolvers = {
   Query: {
     hello() {
@@ -41,15 +32,15 @@ const resolvers = {
     },
   },
   Mutation: {
-    createUser: (_: undefined, args: UserInput) => {
-      const newUser = {
-        id: 1,
-        name: args.data.name,
-        email: args.data.email,
-        password: args.data.password,
-        birthDate: args.data.birthDate,
-      };
-      return newUser;
+    createUser: async (_: undefined, args: UserInput) => {
+      const user = new User();
+      const userRepository = getConnection().getRepository(User);
+      user.name = args.data.name;
+      user.email = args.data.email;
+      user.password = args.data.password;
+      user.birthDate = new Date(args.data.birthDate);
+      await userRepository.insert(user);
+      return user;
     },
   },
 };
@@ -72,7 +63,6 @@ async function listen(port: number) {
 
 async function main() {
   await setupDatabase();
-
   try {
     await listen(4000);
     console.log("Server is ready at http://localhost:4000/graphql");
