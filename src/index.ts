@@ -7,6 +7,7 @@ import { createConnection, getConnection } from 'typeorm';
 import { User } from './entity/User';
 import * as fs from 'fs';
 import * as path from 'path';
+import crypto from 'crypto';
 import { UserInput } from './UserInput';
 
 //database setup
@@ -37,7 +38,7 @@ const resolvers = {
       const userRepository = getConnection().getRepository(User);
       user.name = args.data.name;
       user.email = args.data.email;
-      user.password = args.data.password;
+      user.password = crypto.createHash('sha256').update(args.data.password).digest('hex');;
       user.birthDate = new Date(args.data.birthDate);
 
       if (user.password.length < 6 || !/\d/.test(user.password) || !/[A-Za-z]/.test(user.password)) {
@@ -48,7 +49,7 @@ const resolvers = {
       if (countUsers > 0) {
         throw new Error('This e-mail is already being used!');
       }
-      
+
       await userRepository.insert(user);
       return user;
     },
