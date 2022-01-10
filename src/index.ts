@@ -7,6 +7,7 @@ import { createConnection, getConnection } from 'typeorm';
 import { User } from './entity/User';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 
 //database setup
@@ -37,12 +38,22 @@ const resolvers = {
       const userRepository = getConnection().getRepository(User);
       user.name = args.data.name;
       user.email = args.data.email;
-      user.password = args.data.password;
+      user.password = crypto.createHash('sha256').update(args.data.password).digest('hex');;
       user.birthDate = new Date(args.data.birthDate);
+
+      if (args.data.password.length < 6 || !/\d/.test(args.data.password) || !/[A-Za-z]/.test(args.data.password)) {
+        throw new Error('Weak password!');
+      }
+      const countUsers = await userRepository.count({ email: user.email });
+
+      if (countUsers > 0) {
+        throw new Error('This e-mail is already being used!');
+      }
+
       await userRepository.insert(user);
       return user;
     },
-  },
+  }
 };
 
 async function listen(port: number) {
