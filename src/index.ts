@@ -1,44 +1,55 @@
 import 'reflect-metadata';
-import { ApolloServer, gql } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import express from 'express';
+import * as express from 'express';
 import * as http from 'http';
 import { createConnection } from 'typeorm';
 import { User } from './entity/User';
+import * as fs from 'fs';
+import * as path from 'path';
+import { UserInput } from './UserInput';
 
-// database typeorm connection
-createConnection({
-  type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'local-admin',
-  password: 'localpswd',
-  database: 'local-db',
-  synchronize: true,
-  logging: false,
-  entities: [User],
-})
-  .then(async (connection) => {
-    const user = new User();
-    user.name = 'Marco';
-    user.email = 'marco.prado@taqtile.com.br';
-
-    await connection.manager.save(user);
-    console.log('User saved. User id: ', user.id);
+async function setupDatabase() {
+  createConnection({
+    type: 'postgres',
+    host: 'localhost',
+    port: 5432,
+    username: 'local-admin',
+    password: 'localpswd',
+    database: 'local-db',
+    synchronize: true,
+    logging: false,
+    entities: [User],
   })
-  .catch((error) => console.log(error));
+    .then(async (connection) => {
+      const user = new User();
+      user.name = 'Marco';
+      user.email = 'marco.prado@taqtile.com.br';
+      user.password = 'pswd';
+      user.birthDate = new Date('04-01-2000');
 
-//graphql server
-const typeDefs = gql`
-  type Query {
-    hello: String
-  }
-`;
+      await connection.manager.save(user);
+      console.log('User saved. User id: ', user.id);
+    })
+    .catch((error) => console.log(error));
+}
 
 const resolvers = {
   Query: {
     hello() {
       return "Hello, world!";
+    },
+  },
+  Mutation: {
+    createUser: (_: undefined, args: UserInput) => {
+      const newUser = {
+        id: 1,
+        name: args.data.name,
+        email: args.data.email,
+        password: args.data.password,
+        birthDate: args.data.birthDate,
+      };
+      return newUser;
     },
   },
 };
@@ -48,7 +59,7 @@ async function listen(port: number) {
   const httpServer = http.createServer(app);
 
   const server = new ApolloServer({
-    typeDefs,
+    typeDefs: fs.readFileSync(path.join(__dirname, 'schema.graphql'), 'utf8'),
     resolvers,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
@@ -56,10 +67,12 @@ async function listen(port: number) {
 
   server.applyMiddleware({ app });
 
-  await httpServer.listen(port);
+  httpServer.listen(port);
 }
 
 async function main() {
+  await setupDatabase();
+
   try {
     await listen(4000);
     console.log("Server is ready at http://localhost:4000/graphql");
