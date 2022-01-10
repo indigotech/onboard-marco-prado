@@ -39,6 +39,16 @@ const resolvers = {
       user.email = args.data.email;
       user.password = args.data.password;
       user.birthDate = new Date(args.data.birthDate);
+
+      if (user.password.length < 6 || !/\d/.test(user.password) || !/[A-Za-z]/.test(user.password)) {
+        throw new Error('Weak password!');
+      }
+      const countUsers = await userRepository.count({ email: user.email });
+
+      if (countUsers > 0) {
+        throw new Error('This e-mail is already being used!');
+      }
+      
       await userRepository.insert(user);
       return user;
     },
