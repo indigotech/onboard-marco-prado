@@ -3,12 +3,7 @@ import * as request from 'supertest';
 
 before(async () => {
   await setupDatabase();
-  try {
-    await setupServer(4000);
-    console.log('Server is ready at http://localhost:4000/graphql');
-  } catch (err) {
-    console.error('Error starting the node server', err);
-  }
+  await setupServer(4000);
 });
 
 describe('Hello test', () => {
