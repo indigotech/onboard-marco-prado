@@ -105,6 +105,50 @@ describe('createUser test', () => {
     expect(res.body.errors[0].code).to.be.eq(400);
     expect(res.body.errors[0].message).to.be.eq('Weak password!');
   });
+
+  it('createUser mutation e-mail already being used error', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: `
+        mutation {
+          createUser(
+            data: { name: "Marco", email: "marco@email.com", password: "pswd123", birthDate: "04-01-2000" }
+          ) {
+            id
+            name
+            email
+            birthDate
+          }
+        }
+      `,
+      });
+
+    expect(res.body.errors[0].code).to.be.eq(400);
+    expect(res.body.errors[0].message).to.be.eq('This e-mail is already being used!');
+  });
+
+  it('createUser mutation weak password error', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: `
+        mutation {
+          createUser(
+            data: { name: "Marco", email: "marco@email.com", password: "pswd", birthDate: "04-01-2000" }
+          ) {
+            id
+            name
+            email
+            birthDate
+          }
+        }
+      `,
+      });
+
+    expect(res.body.errors[0].code).to.be.eq(400);
+    expect(res.body.errors[0].message).to.be.eq('Weak password!');
+  });
 });
 
 afterEach(async () => {
