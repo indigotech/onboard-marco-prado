@@ -3,6 +3,7 @@ import { getConnection } from 'typeorm';
 import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 import { User } from './entity/User';
+import { CustomError } from './error-formatter';
 
 export const resolvers = {
   Query: {
@@ -21,12 +22,12 @@ export const resolvers = {
       user.birthDate = new Date(args.data.birthDate);
 
       if (args.data.password.length < 6 || !/\d/.test(args.data.password) || !/[A-Za-z]/.test(args.data.password)) {
-        throw new Error('Weak password!');
+        throw new CustomError('Weak password!', 400);
       }
       const countUsers = await userRepository.count({ email: user.email });
 
       if (countUsers > 0) {
-        throw new Error('This e-mail is already being used!');
+        throw new CustomError('This e-mail is already being used!', 400);
       }
 
       await userRepository.insert(user);

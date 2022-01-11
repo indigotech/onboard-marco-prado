@@ -8,6 +8,7 @@ import { User } from './entity/User';
 import * as fs from 'fs';
 import * as path from 'path';
 import { resolvers } from './resolvers';
+import { formatError } from './error-formatter';
 
 export async function setupDatabase() {
   await createConnection({
@@ -27,6 +28,7 @@ export async function setupServer(port: number) {
     typeDefs: fs.readFileSync(path.join(__dirname, 'schema.graphql'), 'utf8'),
     resolvers,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    formatError
   });
   await server.start();
 
