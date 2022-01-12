@@ -46,7 +46,7 @@ export const resolvers = {
       if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
         return {
           user: loginUser,
-          token: 'teste',
+          token: 'token',
         };
       } else {
         throw new CustomError('Invalid password!', 401);

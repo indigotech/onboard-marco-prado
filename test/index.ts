@@ -19,6 +19,20 @@ const createUserMutation = `
   }
 `;
 
+const loginMutation = `
+mutation ($email: String!, $password: String!){
+  login(email: $email, password: $password){
+    user{
+      id
+      name
+      email
+      birthDate
+    }
+    token
+  }
+}
+`;
+
 before(async () => {
   await setupDatabase();
   await setupServer(4000);
@@ -156,6 +170,63 @@ describe('createUser test', () => {
 
     expect(res.body.errors[0].code).to.be.eq(400);
     expect(res.body.errors[0].message).to.be.eq('Weak password!');
+  });
+});
+
+describe('login test', () => {
+  it('should be possible to login correctly', async () => {
+    let res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Marco',
+            email: 'marco@email.com',
+            password: 'pswd123',
+            birthDate: '04-01-2000',
+          },
+        },
+      });
+
+    res = await request('localhost:4000')
+      .post('/graphql')
+      .send({ query: loginMutation, variables: { email: 'marco@email.com', password: 'pswd123' } });
+
+    expect(res.body.data.login.user.email).to.be.eq('marco@email.com');
+    expect(res.body.data.login.token).to.be.eq('token');
+  });
+
+  it('should return user not found error', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({ query: loginMutation, variables: { email: 'marco@email.com', password: 'pswd123' } });
+
+    expect(res.body.errors[0].code).to.be.eq(401);
+    expect(res.body.errors[0].message).to.be.eq('User not found!');
+  });
+
+  it('should return invalid password error', async () => {
+    let res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Marco',
+            email: 'marco@email.com',
+            password: 'pswd123',
+            birthDate: '04-01-2000',
+          },
+        },
+      });
+
+    res = await request('localhost:4000')
+      .post('/graphql')
+      .send({ query: loginMutation, variables: { email: 'marco@email.com', password: 'pswd12345' } });
+
+    expect(res.body.errors[0].code).to.be.eq(401);
+    expect(res.body.errors[0].message).to.be.eq('Invalid password!');
   });
 });
 
