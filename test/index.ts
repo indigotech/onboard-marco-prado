@@ -5,17 +5,6 @@ import { User } from '../src/entity/User';
 
 dotenv.config({ path: __dirname + '/../test.env' });
 
-const createUserMutation = `
-  mutation ($data: UserInput!) {
-    createUser(data: $data) {
-      id
-      name
-      email
-      birthDate
-    }
-  }
-`;
-
 before(async () => {
   await setupDatabase();
   await setupServer(4000);
