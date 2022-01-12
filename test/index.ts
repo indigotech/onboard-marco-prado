@@ -24,8 +24,8 @@ before(async () => {
   await setupServer(4000);
 });
 
-describe('Hello test', () => {
-  it('Hello query', async () => {
+describe('hello test', () => {
+  it('should return Hello, world!', async () => {
     const res = await request('localhost:4000').post('/graphql').send({ query: '{hello}' });
     expect(res.body.data.hello).to.be.eq('Hello, world!');
   });
@@ -60,44 +60,52 @@ describe('createUser test', () => {
     expect(dbUser.password).to.be.eq(crypto.createHash('sha256').update('pswd123').digest('hex'));
   });
 
-  it('createUser mutation e-mail already being used error', async () => {
-    const res = await request('localhost:4000')
+  it('should return e-mail already being used error', async () => {
+    let res = await request('localhost:4000')
       .post('/graphql')
       .send({
-        query: `
-        mutation {
-          createUser(
-            data: { name: "Marco", email: "marco@email.com", password: "pswd123", birthDate: "04-01-2000" }
-          ) {
-            id
-            name
-            email
-            birthDate
-          }
-        }
-      `,
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Marco',
+            email: 'marco@email.com',
+            password: 'pswd123',
+            birthDate: '04-01-2000',
+          },
+        },
+      });
+
+    res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Marco',
+            email: 'marco@email.com',
+            password: 'pswd12345',
+            birthDate: '05-01-2000',
+          },
+        },
       });
 
     expect(res.body.errors[0].code).to.be.eq(400);
     expect(res.body.errors[0].message).to.be.eq('This e-mail is already being used!');
   });
 
-  it('createUser mutation weak password error', async () => {
+  it('should return weak password error', async () => {
     const res = await request('localhost:4000')
       .post('/graphql')
       .send({
-        query: `
-        mutation {
-          createUser(
-            data: { name: "Marco", email: "marco@email.com", password: "pswd", birthDate: "04-01-2000" }
-          ) {
-            id
-            name
-            email
-            birthDate
-          }
-        }
-      `,
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Carlos',
+            email: 'carlos@email.com',
+            password: 'pswd',
+            birthDate: '04-01-2000',
+          },
+        },
       });
 
     expect(res.body.errors[0].code).to.be.eq(400);
