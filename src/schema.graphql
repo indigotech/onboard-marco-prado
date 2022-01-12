@@ -7,7 +7,7 @@ type Mutation {
 }
 
 type Mutation {
-  login(email: String!, password: String!): LoginInfo!
+  login(email: String!, password: String!, rememberMe: Boolean = false): LoginInfo!
 }
 
 input UserInput {

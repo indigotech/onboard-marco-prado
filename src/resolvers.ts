@@ -39,6 +39,14 @@ export const resolvers = {
       const loginUser = await userRepository.findOne({
         where: { email: args.email },
       });
+      let expirationTime: number;
+
+      if(args.rememberMe){
+        expirationTime = 604800;
+      }
+      else{
+        expirationTime = 120;
+      }
 
       if (loginUser === undefined) {
         throw new CustomError('User not found!', 401);
@@ -47,7 +55,7 @@ export const resolvers = {
       if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
         return {
           user: loginUser,
-          token: jwt.sign({email: loginUser.email}, 'tokensecret', {expiresIn: 120}),
+          token: jwt.sign({email: loginUser.email}, 'tokensecret', {expiresIn: expirationTime}),
         };
       } else {
         throw new CustomError('Invalid password!', 401);
