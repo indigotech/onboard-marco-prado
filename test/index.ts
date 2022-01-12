@@ -4,8 +4,20 @@ import { expect } from 'chai';
 import * as dotenv from 'dotenv';
 import { getConnection } from 'typeorm';
 import { User } from '../src/entity/User';
+import * as crypto from 'crypto';
 
 dotenv.config({ path: __dirname + '/../test.env' });
+
+const createUserMutation = `
+  mutation ($data: UserInput!) {
+    createUser(data: $data) {
+      id
+      name
+      email
+      birthDate
+    }
+  }
+`;
 
 before(async () => {
   await setupDatabase();
@@ -20,23 +32,21 @@ describe('Hello test', () => {
 });
 
 describe('createUser test', () => {
-  it('createUser mutation', async () => {
+  it('should be possible to create user correctly', async () => {
     const res = await request('localhost:4000')
       .post('/graphql')
       .send({
-        query: `
-        mutation {
-          createUser(
-            data: { name: "Marco", email: "marco@email.com", password: "pswd123", birthDate: "04-01-2000" }
-          ) {
-            id
-            name
-            email
-            birthDate
-          }
-        }
-      `,
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Marco',
+            email: 'marco@email.com',
+            password: 'pswd123',
+            birthDate: '04-01-2000',
+          },
+        },
       });
+
     expect(res.body.data.createUser.id).to.exist;
     expect(res.body.data.createUser.name).to.be.eq('Marco');
     expect(res.body.data.createUser.email).to.be.eq('marco@email.com');
@@ -47,11 +57,11 @@ describe('createUser test', () => {
     expect(dbUser.name).to.be.eq('Marco');
     expect(dbUser.email).to.be.eq('marco@email.com');
     expect(dbUser.birthDate.toDateString()).to.be.eq(new Date('2000-04-01T03:00:00.000Z').toDateString());
-    expect(dbUser.password).to.not.be.eq('pswd123');
+    expect(dbUser.password).to.be.eq(crypto.createHash('sha256').update('pswd123').digest('hex'));
   });
 });
 
 afterEach(async () => {
-  const userRepository = getConnection().getRepository('User');
+  const userRepository = getConnection().getRepository(User);
   await userRepository.clear();
 });

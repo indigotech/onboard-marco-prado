@@ -4,7 +4,7 @@
   "description": "## Project's Description This is my back-end onboard project for Taqtile",
   "main": "index.ts",
   "scripts": {
-    "start": "nodemon --watch './src/**/*.{ts.graphql}' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
+    "start": "ts-node src/index.ts",
     "dev": "nodemon --watch './src/**/*.{ts.graphql}' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
     "test": "mocha -r ts-node/register test/index.ts"
   },
