@@ -6,11 +6,15 @@ type Mutation {
   createUser(data: UserInput!): User!
 }
 
+type Mutation {
+  login(email: String!, password: String!): LoginInfo!
+}
+
 input UserInput {
   name: String!
   email: String!
   password: String!
-  birthDate: String!
+  birthDate: String
 }
 
 type User {
@@ -18,5 +22,10 @@ type User {
   name: String!
   email: String!
   password: String!
-  birthDate: String!
+  birthDate: String
+}
+
+type LoginInfo {
+  user: User!
+  token: String!
 }
