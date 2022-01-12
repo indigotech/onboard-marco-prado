@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 import { User } from './entity/User';
 import { CustomError } from './error-formatter';
+import * as jwt from 'jsonwebtoken';
 
 export const resolvers = {
   Query: {
@@ -46,7 +47,7 @@ export const resolvers = {
       if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
         return {
           user: loginUser,
-          token: 'token',
+          token: jwt.sign({email: loginUser.email}, 'tokensecret', {expiresIn: 120}),
         };
       } else {
         throw new CustomError('Invalid password!', 401);
