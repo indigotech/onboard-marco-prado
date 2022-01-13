@@ -22,6 +22,17 @@ export const resolvers = {
       }
       return user;
     },
+    async Users(_: any, args: any, context: any) {
+      const userRepository = getConnection().getRepository(User);
+      const reqToken: string = context.headers.authorization;
+      verifyToken(reqToken);
+      const users = await userRepository
+        .createQueryBuilder('user')
+        .orderBy('user.name')
+        .limit(args.first)
+        .getMany();
+      return users;
+    },
   },
   Mutation: {
     createUser: async (_: any, args: UserInput, context: ReqHeader) => {
