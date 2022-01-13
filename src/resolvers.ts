@@ -12,7 +12,7 @@ export const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_: undefined, args: UserInput) => {
+    createUser: async (_: any, args: UserInput) => {
       const user = new User();
       const userRepository = getConnection().getRepository(User);
 
@@ -32,6 +32,25 @@ export const resolvers = {
 
       await userRepository.insert(user);
       return user;
+    },
+    login: async (_: any, args: any) => {
+      const userRepository = getConnection().getRepository(User);
+      const loginUser = await userRepository.findOne({
+        where: { email: args.email },
+      });
+
+      if (loginUser === undefined) {
+        throw new CustomError('User not found!', 401);
+      }
+
+      if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
+        return {
+          user: loginUser,
+          token: 'token',
+        };
+      } else {
+        throw new CustomError('Invalid password!', 401);
+      }
     },
   },
 };
