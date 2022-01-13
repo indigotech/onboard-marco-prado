@@ -40,7 +40,14 @@ beforeEach(async () => {
   adminUser.password = crypto.createHash('sha256').update('adminpswd123').digest('hex');
   adminUser.birthDate = new Date('2000-04-01');
   await userRepository.insert(adminUser);
+<<<<<<< HEAD
   adminToken = jwt.sign({ email: adminUser.email }, 'tokensecret', { expiresIn: 120 });
+=======
+  const res = await request('localhost:4000')
+    .post('/graphql')
+    .send({ query: loginMutation, variables: { email: 'admin@email.com', password: 'adminpswd123' } });
+  adminToken = res.body.data.login.token;
+>>>>>>> 06c7bcb (feat: added user query and its tests)
 });
 
 describe('user test', () => {
@@ -53,6 +60,7 @@ describe('user test', () => {
     testUser.birthDate = new Date('2000-04-01');
     await userRepository.insert(testUser);
 
+<<<<<<< HEAD
     const res = await makeRequest(
       userQuery,
       {
@@ -77,21 +85,59 @@ describe('user test', () => {
       },
       { Authorization: adminToken },
     );
+=======
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .set('Authorization', adminToken)
+      .send({
+        query: userQuery,
+        variables: {
+          id: testUser.id,
+        },
+      });
+
+    expect(res.body.data.user.name).to.be.eq('Marco');
+    expect(res.body.data.user.email).to.be.eq('marco@email.com');
+  });
+
+  it('should return user not found error', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .set('Authorization', adminToken)
+      .send({
+        query: userQuery,
+        variables: {
+          id: -1,
+        },
+      });
+>>>>>>> 06c7bcb (feat: added user query and its tests)
 
     expect(res.body.errors[0].code).to.be.eq(404);
     expect(res.body.errors[0].message).to.be.eq('User not found!');
   });
 
   it('should return invalid token error (no token sent)', async () => {
+<<<<<<< HEAD
     const res = await makeRequest(userQuery, {
       id: 1,
     });
+=======
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: userQuery,
+        variables: {
+          id: 1,
+        },
+      });
+>>>>>>> 06c7bcb (feat: added user query and its tests)
 
     expect(res.body.errors[0].code).to.be.eq(401);
     expect(res.body.errors[0].message).to.be.eq('Invalid token!');
   });
 
   it('should return invalid token error (invalid token sent)', async () => {
+<<<<<<< HEAD
     const res = await makeRequest(
       userQuery,
       {
@@ -99,6 +145,17 @@ describe('user test', () => {
       },
       { Authorization: 'invalidToken' },
     );
+=======
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .set('Authorization', 'invalidToken')
+      .send({
+        query: userQuery,
+        variables: {
+          id: 1,
+        },
+      });
+>>>>>>> 06c7bcb (feat: added user query and its tests)
 
     expect(res.body.errors[0].code).to.be.eq(401);
     expect(res.body.errors[0].message).to.be.eq('Invalid token!');
