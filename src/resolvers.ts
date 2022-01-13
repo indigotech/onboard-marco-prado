@@ -13,10 +13,19 @@ export const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_: any, args: UserInput) => {
+    createUser: async (_: any, args: UserInput, context) => {
       const user = new User();
       const userRepository = getConnection().getRepository(User);
+      const reqToken: string = context.headers.authorization;
+      jwt.verify(reqToken, 'tokensecret', (error, decoded) => {
+        if (error) {
+          throw new CustomError('Invalid token!', 401);
+        }
 
+        if (JSON.stringify(Object.keys(decoded)) !== JSON.stringify(['email', 'iat', 'exp'])) {
+          throw new CustomError('Invalid token!', 401);
+        }
+      });
       user.name = args.data.name;
       user.email = args.data.email;
       user.password = crypto.createHash('sha256').update(args.data.password).digest('hex');
@@ -41,10 +50,9 @@ export const resolvers = {
       });
       let expirationTime: number;
 
-      if(args.rememberMe){
+      if (args.rememberMe) {
         expirationTime = 604800;
-      }
-      else{
+      } else {
         expirationTime = 120;
       }
 
@@ -55,7 +63,7 @@ export const resolvers = {
       if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
         return {
           user: loginUser,
-          token: jwt.sign({email: loginUser.email}, 'tokensecret', {expiresIn: expirationTime}),
+          token: jwt.sign({ email: loginUser.email }, 'tokensecret', { expiresIn: expirationTime }),
         };
       } else {
         throw new CustomError('Invalid password!', 401);

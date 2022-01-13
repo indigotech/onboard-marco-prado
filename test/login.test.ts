@@ -5,17 +5,17 @@ import * as request from 'supertest';
 import { expect } from 'chai';
 
 const loginMutation = `
-  mutation ($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      user {
-        id
-        name
-        email
-        birthDate
-      }
-      token
+mutation ($email: String!, $password: String!){
+  login(email: $email, password: $password){
+    user{
+      id
+      name
+      email
+      birthDate
     }
+    token
   }
+}
 `;
 
 describe('login test', () => {
@@ -33,7 +33,7 @@ describe('login test', () => {
       .send({ query: loginMutation, variables: { email: 'marco@email.com', password: 'pswd123' } });
 
     expect(res.body.data.login.user.email).to.be.eq('marco@email.com');
-    expect(res.body.data.login.token).to.be.eq('token');
+    expect(res.body.data.login.token).to.exist;
   });
 
   it('should return user not found error', async () => {

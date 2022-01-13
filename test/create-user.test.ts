@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import * as request from 'supertest';
 import { expect } from 'chai';
 
+var adminToken: string;
 const createUserMutation = `
   mutation ($data: UserInput!) {
     createUser(data: $data) {
@@ -15,10 +16,39 @@ const createUserMutation = `
   }
 `;
 
+const loginMutation = `
+mutation ($email: String!, $password: String!){
+  login(email: $email, password: $password){
+    user{
+      id
+      name
+      email
+      birthDate
+    }
+    token
+  }
+}
+`;
+
+beforeEach(async () => {
+  const userRepository = getConnection().getRepository(User);
+  const adminUser = new User();
+  adminUser.name = 'Admin';
+  adminUser.email = 'admin@email.com';
+  adminUser.password = crypto.createHash('sha256').update('adminpswd123').digest('hex');
+  adminUser.birthDate = new Date('2000-04-01');
+  await userRepository.insert(adminUser);
+  const res = await request('localhost:4000')
+    .post('/graphql')
+    .send({ query: loginMutation, variables: { email: 'admin@email.com', password: 'adminpswd123' } });
+  adminToken = res.body.data.login.token;
+});
+
 describe('createUser test', () => {
   it('should be possible to create user correctly', async () => {
     const res = await request('localhost:4000')
       .post('/graphql')
+      .set('Authorization', adminToken)
       .send({
         query: createUserMutation,
         variables: {
@@ -55,6 +85,7 @@ describe('createUser test', () => {
 
     const res = await request('localhost:4000')
       .post('/graphql')
+      .set('Authorization', adminToken)
       .send({
         query: createUserMutation,
         variables: {
@@ -74,6 +105,7 @@ describe('createUser test', () => {
   it('should return weak password error', async () => {
     const res = await request('localhost:4000')
       .post('/graphql')
+      .set('Authorization', adminToken)
       .send({
         query: createUserMutation,
         variables: {
@@ -88,5 +120,44 @@ describe('createUser test', () => {
 
     expect(res.body.errors[0].code).to.be.eq(400);
     expect(res.body.errors[0].message).to.be.eq('Weak password!');
+  });
+
+  it('should return invalid token error (no token sent)', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Carlos',
+            email: 'carlos@email.com',
+            password: 'pswd',
+            birthDate: '04-01-2000',
+          },
+        },
+      });
+
+    expect(res.body.errors[0].code).to.be.eq(401);
+    expect(res.body.errors[0].message).to.be.eq('Invalid token!');
+  });
+
+  it('should return invalid token error (invalid token sent)', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .set('Authorization', 'invalidToken')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Carlos',
+            email: 'carlos@email.com',
+            password: 'pswd',
+            birthDate: '04-01-2000',
+          },
+        },
+      });
+
+    expect(res.body.errors[0].code).to.be.eq(401);
+    expect(res.body.errors[0].message).to.be.eq('Invalid token!');
   });
 });

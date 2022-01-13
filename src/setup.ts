@@ -27,8 +27,11 @@ export async function setupServer(port: number) {
   const server = new ApolloServer({
     typeDefs: fs.readFileSync(path.join(__dirname, 'schema.graphql'), 'utf8'),
     resolvers,
+    context: ({ req }) => {
+      return req;
+    },
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-    formatError
+    formatError,
   });
   await server.start();
 
