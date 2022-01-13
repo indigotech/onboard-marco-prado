@@ -61,21 +61,15 @@ describe('createUser test', () => {
   });
 
   it('should return e-mail already being used error', async () => {
-    let res = await request('localhost:4000')
-      .post('/graphql')
-      .send({
-        query: createUserMutation,
-        variables: {
-          data: {
-            name: 'Marco',
-            email: 'marco@email.com',
-            password: 'pswd123',
-            birthDate: '04-01-2000',
-          },
-        },
-      });
+    const userRepository = getConnection().getRepository(User);
+    const testUser = new User();
+    testUser.name = 'Marco';
+    testUser.email = 'marco@email.com';
+    testUser.password = crypto.createHash('sha256').update('pswd123').digest('hex');
+    testUser.birthDate = new Date('2000-04-01');
+    await userRepository.insert(testUser);
 
-    res = await request('localhost:4000')
+    const res = await request('localhost:4000')
       .post('/graphql')
       .send({
         query: createUserMutation,
