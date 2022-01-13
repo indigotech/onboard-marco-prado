@@ -24,8 +24,8 @@ before(async () => {
   await setupServer(4000);
 });
 
-describe('Hello test', () => {
-  it('Hello query', async () => {
+describe('hello test', () => {
+  it('should return Hello, world!', async () => {
     const res = await request('localhost:4000').post('/graphql').send({ query: '{hello}' });
     expect(res.body.data.hello).to.be.eq('Hello, world!');
   });
@@ -58,6 +58,52 @@ describe('createUser test', () => {
     expect(dbUser.email).to.be.eq('marco@email.com');
     expect(dbUser.birthDate.toDateString()).to.be.eq(new Date('2000-04-01T03:00:00.000Z').toDateString());
     expect(dbUser.password).to.be.eq(crypto.createHash('sha256').update('pswd123').digest('hex'));
+  });
+
+  it('should return e-mail already being used error', async () => {
+    const userRepository = getConnection().getRepository(User);
+    const testUser = new User();
+    testUser.name = 'Marco';
+    testUser.email = 'marco@email.com';
+    testUser.password = crypto.createHash('sha256').update('pswd123').digest('hex');
+    testUser.birthDate = new Date('2000-04-01');
+    await userRepository.insert(testUser);
+
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Marco',
+            email: 'marco@email.com',
+            password: 'pswd12345',
+            birthDate: '05-01-2000',
+          },
+        },
+      });
+
+    expect(res.body.errors[0].code).to.be.eq(400);
+    expect(res.body.errors[0].message).to.be.eq('This e-mail is already being used!');
+  });
+
+  it('should return weak password error', async () => {
+    const res = await request('localhost:4000')
+      .post('/graphql')
+      .send({
+        query: createUserMutation,
+        variables: {
+          data: {
+            name: 'Carlos',
+            email: 'carlos@email.com',
+            password: 'pswd',
+            birthDate: '04-01-2000',
+          },
+        },
+      });
+
+    expect(res.body.errors[0].code).to.be.eq(400);
+    expect(res.body.errors[0].message).to.be.eq('Weak password!');
   });
 });
 
