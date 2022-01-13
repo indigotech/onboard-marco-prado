@@ -7,14 +7,36 @@ import { CustomError } from './error-formatter';
 import * as jwt from 'jsonwebtoken';
 import { generateToken, verifyToken } from './token-manager';
 
+function verifyToken(token: string) {
+  jwt.verify(token, 'tokensecret', (error, decoded) => {
+    if (error) {
+      throw new CustomError('Invalid token!', 401);
+    }
+
+    if (JSON.stringify(Object.keys(decoded)) !== JSON.stringify(['email', 'iat', 'exp'])) {
+      throw new CustomError('Invalid token!', 401);
+    }
+  });
+}
+
 export const resolvers = {
   Query: {
     hello() {
       return 'Hello, world!';
     },
+    async user(_: any, args: any, context: any) {
+      const userRepository = getConnection().getRepository(User);
+      const reqToken: string = context.headers.authorization;
+      verifyToken(reqToken);
+      const user = await userRepository.findOne(args.id);
+      if (user === undefined) {
+        throw new CustomError('User not found!', 404);
+      }
+      return user;
+    },
   },
   Mutation: {
-    createUser: async (_: any, args: UserInput, context) => {
+    createUser: async (_: any, args: UserInput, context: any) => {
       const user = new User();
       const userRepository = getConnection().getRepository(User);
       const reqToken: string = context.headers.authorization;

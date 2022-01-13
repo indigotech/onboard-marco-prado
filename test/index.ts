@@ -25,6 +25,8 @@ require('./create-user.test');
 
 require('./login.test');
 
+require('./user.test');
+
 afterEach(async () => {
   const userRepository = getConnection().getRepository(User);
   await userRepository.clear();

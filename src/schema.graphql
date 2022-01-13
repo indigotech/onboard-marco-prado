@@ -2,6 +2,10 @@ type Query {
   hello: String
 }
 
+type Query {
+  user(id: ID!): User!
+}
+
 type Mutation {
   createUser(data: UserInput!): User!
 }

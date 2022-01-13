@@ -7,17 +7,17 @@ import * as jwt from 'jsonwebtoken';
 import { makeRequest } from './index';
 
 const loginMutation = `
-mutation ($email: String!, $password: String!){
-  login(email: $email, password: $password){
-    user{
-      id
-      name
-      email
-      birthDate
+  mutation ($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      user {
+        id
+        name
+        email
+        birthDate
+      }
+      token
     }
-    token
   }
-}
 `;
 
 describe('login test', () => {
