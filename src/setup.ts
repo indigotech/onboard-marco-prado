@@ -12,11 +12,7 @@ import { resolvers } from './resolvers';
 export async function setupDatabase() {
   await createConnection({
     type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'local-admin',
-    password: 'localpswd',
-    database: 'local-db',
+    url: process.env.DATABASE_URL,
     synchronize: true,
     logging: false,
     entities: [User],

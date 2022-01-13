@@ -4,6 +4,7 @@
   "description": "## Project's Description This is my back-end onboard project for Taqtile",
   "main": "index.ts",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "dev": "nodemon --watch './src/**/*.{ts.graphql}' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
     "test": "mocha -r ts-node/register test/index.ts"
   },
@@ -20,6 +21,7 @@
   "dependencies": {
     "apollo-server-core": "3.6.1",
     "apollo-server-express": "3.6.1",
+    "dotenv": "11.0.0",
     "express": "4.17.2",
     "express-graphql": "0.12.0",
     "graphql": "16.2.0",
