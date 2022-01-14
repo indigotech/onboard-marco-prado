@@ -19,17 +19,17 @@ const createUserMutation = `
 `;
 
 const loginMutation = `
-mutation ($email: String!, $password: String!){
-  login(email: $email, password: $password){
-    user{
-      id
-      name
-      email
-      birthDate
+  mutation ($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      user {
+        id
+        name
+        email
+        birthDate
+      }
+      token
     }
-    token
   }
-}
 `;
 
 beforeEach(async () => {

@@ -4,17 +4,27 @@ import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 import { User } from './entity/User';
 import { CustomError } from './error-formatter';
-import * as jwt from 'jsonwebtoken';
 import { generateToken, verifyToken } from './token-manager';
+import { ReqHeader } from './context';
 
 export const resolvers = {
   Query: {
     hello() {
       return 'Hello, world!';
     },
+    async user(_: any, args: any, context: ReqHeader) {
+      const userRepository = getConnection().getRepository(User);
+      const reqToken: string = context.headers.authorization;
+      verifyToken(reqToken, 'tokensecret');
+      const user = await userRepository.findOne(args.id);
+      if (!user) {
+        throw new CustomError('User not found!', 404);
+      }
+      return user;
+    },
   },
   Mutation: {
-    createUser: async (_: any, args: UserInput, context) => {
+    createUser: async (_: any, args: UserInput, context: ReqHeader) => {
       const user = new User();
       const userRepository = getConnection().getRepository(User);
       const reqToken: string = context.headers.authorization;
@@ -42,7 +52,7 @@ export const resolvers = {
         where: { email: args.email },
       });
 
-      if (loginUser === undefined) {
+      if (!loginUser) {
         throw new CustomError('User not found!', 401);
       }
 
