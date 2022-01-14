@@ -3,7 +3,10 @@ import { User } from '../src/entity/User';
 import * as crypto from 'crypto';
 import * as request from 'supertest';
 import { expect } from 'chai';
+import * as jwt from 'jsonwebtoken';
+import { makeRequest } from './index';
 
+var adminToken: string;
 const createUserMutation = `
   mutation ($data: UserInput!) {
     createUser(data: $data) {
@@ -15,21 +18,45 @@ const createUserMutation = `
   }
 `;
 
+const loginMutation = `
+mutation ($email: String!, $password: String!){
+  login(email: $email, password: $password){
+    user{
+      id
+      name
+      email
+      birthDate
+    }
+    token
+  }
+}
+`;
+
+beforeEach(async () => {
+  const userRepository = getConnection().getRepository(User);
+  const adminUser = new User();
+  adminUser.name = 'Admin';
+  adminUser.email = 'admin@email.com';
+  adminUser.password = crypto.createHash('sha256').update('adminpswd123').digest('hex');
+  adminUser.birthDate = new Date('2000-04-01');
+  await userRepository.insert(adminUser);
+  adminToken = jwt.sign({ email: adminUser.email }, 'tokensecret', { expiresIn: 120 });
+});
+
 describe('createUser test', () => {
   it('should be possible to create user correctly', async () => {
-    const res = await request('localhost:4000')
-      .post('/graphql')
-      .send({
-        query: createUserMutation,
-        variables: {
-          data: {
-            name: 'Marco',
-            email: 'marco@email.com',
-            password: 'pswd123',
-            birthDate: '04-01-2000',
-          },
+    const res = await makeRequest(
+      createUserMutation,
+      {
+        data: {
+          name: 'Marco',
+          email: 'marco@email.com',
+          password: 'pswd123',
+          birthDate: '04-01-2000',
         },
-      });
+      },
+      { Authorization: adminToken },
+    );
 
     expect(res.body.data.createUser.id).to.exist;
     expect(res.body.data.createUser.name).to.be.eq('Marco');
@@ -53,40 +80,70 @@ describe('createUser test', () => {
     testUser.birthDate = new Date('2000-04-01');
     await userRepository.insert(testUser);
 
-    const res = await request('localhost:4000')
-      .post('/graphql')
-      .send({
-        query: createUserMutation,
-        variables: {
-          data: {
-            name: 'Marco',
-            email: 'marco@email.com',
-            password: 'pswd12345',
-            birthDate: '05-01-2000',
-          },
+    const res = await makeRequest(
+      createUserMutation,
+      {
+        data: {
+          name: 'Marco',
+          email: 'marco@email.com',
+          password: 'pswd12345',
+          birthDate: '05-01-2000',
         },
-      });
+      },
+      { Authorization: adminToken },
+    );
 
     expect(res.body.errors[0].code).to.be.eq(400);
     expect(res.body.errors[0].message).to.be.eq('This e-mail is already being used!');
   });
 
   it('should return weak password error', async () => {
-    const res = await request('localhost:4000')
-      .post('/graphql')
-      .send({
-        query: createUserMutation,
-        variables: {
-          data: {
-            name: 'Carlos',
-            email: 'carlos@email.com',
-            password: 'pswd',
-            birthDate: '04-01-2000',
-          },
+    const res = await makeRequest(
+      createUserMutation,
+      {
+        data: {
+          name: 'Carlos',
+          email: 'carlos@email.com',
+          password: 'pswd',
+          birthDate: '04-01-2000',
         },
-      });
+      },
+      { Authorization: adminToken },
+    );
 
     expect(res.body.errors[0].code).to.be.eq(400);
     expect(res.body.errors[0].message).to.be.eq('Weak password!');
+  });
+
+  it('should return invalid token error (no token sent)', async () => {
+    const res = await makeRequest(createUserMutation, {
+      data: {
+        name: 'Carlos',
+        email: 'carlos@email.com',
+        password: 'pswd',
+        birthDate: '04-01-2000',
+      },
+    });
+
+    expect(res.body.errors[0].code).to.be.eq(401);
+    expect(res.body.errors[0].message).to.be.eq('Invalid token!');
+  });
+
+  it('should return invalid token error (invalid token sent)', async () => {
+    const res = await makeRequest(
+      createUserMutation,
+      {
+        data: {
+          name: 'Carlos',
+          email: 'carlos@email.com',
+          password: 'pswd',
+          birthDate: '04-01-2000',
+        },
+      },
+      { Authorization: 'invalidToken' },
+    );
+
+    expect(res.body.errors[0].code).to.be.eq(401);
+    expect(res.body.errors[0].message).to.be.eq('Invalid token!');
   });
 });

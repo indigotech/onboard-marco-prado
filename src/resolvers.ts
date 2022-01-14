@@ -4,6 +4,8 @@ import * as crypto from 'crypto';
 import { UserInput } from './UserInput';
 import { User } from './entity/User';
 import { CustomError } from './error-formatter';
+import * as jwt from 'jsonwebtoken';
+import { generateToken, verifyToken } from './token-manager';
 
 export const resolvers = {
   Query: {
@@ -12,10 +14,11 @@ export const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_: any, args: UserInput) => {
+    createUser: async (_: any, args: UserInput, context) => {
       const user = new User();
       const userRepository = getConnection().getRepository(User);
-
+      const reqToken: string = context.headers.authorization;
+      verifyToken(reqToken, 'tokensecret');
       user.name = args.data.name;
       user.email = args.data.email;
       user.password = crypto.createHash('sha256').update(args.data.password).digest('hex');
@@ -46,7 +49,7 @@ export const resolvers = {
       if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
         return {
           user: loginUser,
-          token: 'token',
+          token: generateToken(args.email, args.rememberMe),
         };
       } else {
         throw new CustomError('Invalid password!', 401);
