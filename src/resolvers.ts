@@ -5,6 +5,7 @@ import { UserInput } from './UserInput';
 import { User } from './entity/User';
 import { CustomError } from './error-formatter';
 import * as jwt from 'jsonwebtoken';
+import { generateToken, verifyToken } from './token-manager';
 
 export const resolvers = {
   Query: {
@@ -17,15 +18,7 @@ export const resolvers = {
       const user = new User();
       const userRepository = getConnection().getRepository(User);
       const reqToken: string = context.headers.authorization;
-      jwt.verify(reqToken, 'tokensecret', (error, decoded) => {
-        if (error) {
-          throw new CustomError('Invalid token!', 401);
-        }
-
-        if (JSON.stringify(Object.keys(decoded)) !== JSON.stringify(['email', 'iat', 'exp'])) {
-          throw new CustomError('Invalid token!', 401);
-        }
-      });
+      verifyToken(reqToken, 'tokensecret');
       user.name = args.data.name;
       user.email = args.data.email;
       user.password = crypto.createHash('sha256').update(args.data.password).digest('hex');
@@ -48,13 +41,6 @@ export const resolvers = {
       const loginUser = await userRepository.findOne({
         where: { email: args.email },
       });
-      let expirationTime: number;
-
-      if (args.rememberMe) {
-        expirationTime = 604800;
-      } else {
-        expirationTime = 120;
-      }
 
       if (loginUser === undefined) {
         throw new CustomError('User not found!', 401);
@@ -63,7 +49,7 @@ export const resolvers = {
       if (loginUser.password === crypto.createHash('sha256').update(args.password).digest('hex')) {
         return {
           user: loginUser,
-          token: jwt.sign({ email: loginUser.email }, 'tokensecret', { expiresIn: expirationTime }),
+          token: generateToken(args.email, args.rememberMe),
         };
       } else {
         throw new CustomError('Invalid password!', 401);
