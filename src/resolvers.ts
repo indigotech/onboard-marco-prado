@@ -25,8 +25,8 @@ export const resolvers = {
     async Users(_: any, args: any, context: ReqHeader) {
       const userRepository = getConnection().getRepository(User);
       const reqToken: string = context.headers.authorization;
-      let hasPreviousPage: Boolean = false;
-      let hasNextPage: Boolean = false;
+      let hasPreviousPage = false;
+      let hasNextPage = false;
       const userCount = await userRepository.count();
       verifyToken(reqToken, 'tokensecret');
 

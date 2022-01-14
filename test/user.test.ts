@@ -2,8 +2,8 @@ import { getConnection } from 'typeorm';
 import { User } from '../src/entity/User';
 import * as crypto from 'crypto';
 import { expect } from 'chai';
-import * as jwt from 'jsonwebtoken';
 import { makeRequest } from '.';
+import { generateToken } from '../src/token-manager';
 
 var adminToken: string;
 const loginMutation = `
@@ -39,7 +39,7 @@ beforeEach(async () => {
   adminUser.password = crypto.createHash('sha256').update('adminpswd123').digest('hex');
   adminUser.birthDate = new Date('2000-04-01');
   await userRepository.insert(adminUser);
-  adminToken = jwt.sign({ email: adminUser.email }, 'tokensecret', { expiresIn: 120 });
+  adminToken = generateToken(adminUser.email);
 });
 
 describe('user test', () => {
