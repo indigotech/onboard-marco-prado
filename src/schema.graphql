@@ -6,6 +6,10 @@ type Query {
   user(id: ID!): User!
 }
 
+type Query {
+  Users(first: Int = 5): [User!]
+}
+
 type Mutation {
   createUser(data: UserInput!): User!
 }
