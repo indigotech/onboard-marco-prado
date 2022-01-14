@@ -6,9 +6,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-async function generateSeeds() {
-  await setupDatabase();
-
+export async function generateSeeds() {
+  let userList = [];
   const userRepository = getConnection().getRepository(User);
 
   for (let counter = 0; counter < 50; counter++) {
@@ -18,8 +17,14 @@ async function generateSeeds() {
     newUser.password = faker.internet.password();
     newUser.birthDate = faker.date.past();
 
-    await userRepository.insert(newUser);
+    userList.push(newUser);
   }
+  await userRepository.insert(userList);
 }
 
-generateSeeds();
+async function main() {
+  await setupDatabase();
+  generateSeeds();
+}
+
+main();
