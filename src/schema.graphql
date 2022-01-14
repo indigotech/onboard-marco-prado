@@ -1,20 +1,11 @@
 type Query {
   hello: String
-}
-
-type Query {
   user(id: ID!): User!
-}
-
-type Query {
-  Users(first: Int = 5): [User!]
+  Users(first: Int = 1, offset: Int = 0): Users!
 }
 
 type Mutation {
   createUser(data: UserInput!): User!
-}
-
-type Mutation {
   login(email: String!, password: String!, rememberMe: Boolean = false): LoginInfo!
 }
 
@@ -33,7 +24,18 @@ type User {
   birthDate: String
 }
 
+type Users {
+  total: Int!
+  pageInfo: PageInfo!
+  users: [User]!
+}
+
 type LoginInfo {
   user: User!
   token: String!
+}
+
+type PageInfo {
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
 }
