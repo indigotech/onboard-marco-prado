@@ -12,13 +12,12 @@ export function generateToken(email: string, rememberMe: Boolean = false) {
 }
 
 export function verifyToken(token: string, secret: string) {
-  const decoded: any = jwt.verify(token, secret, (error, decoded) => {
-    if (error) {
+  try {
+    const decoded = jwt.verify(token, secret);
+    if (JSON.stringify(Object.keys(decoded)) !== JSON.stringify(['email', 'iat', 'exp'])) {
       throw new CustomError('Invalid token!', 401);
     }
-    return decoded;
-  });
-  if (JSON.stringify(Object.keys(decoded)) !== JSON.stringify(['email', 'iat', 'exp'])) {
+  } catch (error) {
     throw new CustomError('Invalid token!', 401);
   }
 }
