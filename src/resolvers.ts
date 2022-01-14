@@ -25,9 +25,29 @@ export const resolvers = {
     async Users(_: any, args: any, context: ReqHeader) {
       const userRepository = getConnection().getRepository(User);
       const reqToken: string = context.headers.authorization;
+      let hasPreviousPage = false;
+      let hasNextPage = false;
+      const userCount = await userRepository.count();
       verifyToken(reqToken, 'tokensecret');
-      const users = await userRepository.createQueryBuilder('user').orderBy('user.name').limit(args.first).getMany();
-      return users;
+
+      if (args.offset > 0) {
+        hasPreviousPage = true;
+      }
+      if (args.first + args.offset < userCount) {
+        hasNextPage = true;
+      }
+      const users = await userRepository
+        .createQueryBuilder('user')
+        .orderBy('user.name')
+        .offset(args.offset)
+        .limit(args.first)
+        .getMany();
+
+      return {
+        total: userCount,
+        pageInfo: { hasPreviousPage: hasPreviousPage, hasNextPage: hasNextPage },
+        users: users,
+      };
     },
   },
   Mutation: {

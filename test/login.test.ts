@@ -1,7 +1,6 @@
 import { getConnection } from 'typeorm';
 import { User } from '../src/entity/User';
 import * as crypto from 'crypto';
-import * as request from 'supertest';
 import { expect } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { makeRequest } from './index';
