@@ -1,8 +1,9 @@
 import { setupDatabase, setupServer } from '../src/setup';
 import * as dotenv from 'dotenv';
-import { getConnection } from 'typeorm';
+import { getConnection, getRepository } from 'typeorm';
 import { User } from '../src/entity/User';
 import * as request from 'supertest';
+import { Address } from '../src/entity/Address';
 
 dotenv.config({ path: __dirname + '/../test.env' });
 
@@ -30,6 +31,8 @@ require('./user.test');
 require('./users.test');
 
 afterEach(async () => {
+  const addressRepository = getConnection().getRepository(Address);
   const userRepository = getConnection().getRepository(User);
-  await userRepository.clear();
+  await addressRepository.clear();
+  await userRepository.delete({});
 });

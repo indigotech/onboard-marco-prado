@@ -1,6 +1,6 @@
 type Query {
   hello: String
-  user(id: ID!): User!
+  user(id: ID!): UserReturn!
   Users(first: Int = 1, offset: Int = 0): Users!
 }
 
@@ -16,6 +16,11 @@ input UserInput {
   birthDate: String
 }
 
+type UserReturn {
+  user: User!
+  address: [Address]!
+}
+
 type User {
   id: ID!
   name: String!
@@ -27,7 +32,18 @@ type User {
 type Users {
   total: Int!
   pageInfo: PageInfo!
-  users: [User]!
+  users: [UserReturn]!
+}
+
+type Address {
+  id: ID!
+  cep: String!
+  street: String!
+  streetNumber: Int!
+  complement: String
+  neighbourhood: String!
+  city: String!
+  state: String!
 }
 
 type LoginInfo {

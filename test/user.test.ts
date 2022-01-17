@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import { expect } from 'chai';
 import { makeRequest } from '.';
 import { generateToken } from '../src/token-manager';
+import { Address } from '../src/entity/Address';
 
 var adminToken: string;
 const loginMutation = `
@@ -23,10 +24,21 @@ const loginMutation = `
 const userQuery = `
   query ($id: ID!) {
     user(id: $id) {
-      id
-      name
-      email
-      birthDate
+      user {
+        id
+        name
+        email
+        birthDate
+      }
+      address {
+        cep
+        street
+        streetNumber
+        complement
+        neighbourhood
+        city
+        state
+      }
     }
   }
 `;
@@ -45,12 +57,23 @@ beforeEach(async () => {
 describe('user test', () => {
   it('should be possible to query user correctly', async () => {
     const userRepository = getConnection().getRepository(User);
+    const addressRepository = getConnection().getRepository(Address);
     const testUser = new User();
+    const testAddress = new Address();
     testUser.name = 'Marco';
     testUser.email = 'marco@email.com';
     testUser.password = crypto.createHash('sha256').update('pswd123').digest('hex');
     testUser.birthDate = new Date('2000-04-01');
     await userRepository.insert(testUser);
+    testAddress.cep = '12345678';
+    testAddress.street = 'Rua Teste';
+    testAddress.streetNumber = 12;
+    testAddress.complement = '-';
+    testAddress.neighbourhood = 'Bairro';
+    testAddress.city = 'São Paulo';
+    testAddress.state = 'SP';
+    testAddress.userId = testUser.id;
+    await addressRepository.insert(testAddress);
 
     const res = await makeRequest(
       userQuery,
@@ -60,11 +83,20 @@ describe('user test', () => {
       { Authorization: adminToken },
     );
 
-    expect(res.body.data.user).to.be.deep.eq({
+    expect(res.body.data.user.user).to.be.deep.eq({
       id: testUser.id.toString(),
       name: 'Marco',
       email: 'marco@email.com',
       birthDate: '954547200000',
+    });
+    expect(res.body.data.user.address[0]).to.be.deep.eq({
+      cep: '12345678',
+      street: 'Rua Teste',
+      streetNumber: 12,
+      complement: '-',
+      neighbourhood: 'Bairro',
+      city: 'São Paulo',
+      state: 'SP',
     });
   });
 
