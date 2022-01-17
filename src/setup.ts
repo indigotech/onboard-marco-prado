@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { resolvers } from './resolvers';
 import { formatError } from './error-formatter';
+import { Address } from './entity/Address';
 
 export async function setupDatabase() {
   await createConnection({
@@ -16,7 +17,7 @@ export async function setupDatabase() {
     url: process.env.DATABASE_URL,
     synchronize: true,
     logging: false,
-    entities: [User],
+    entities: [User, Address],
   });
 }
 

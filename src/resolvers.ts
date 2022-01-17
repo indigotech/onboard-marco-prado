@@ -6,6 +6,7 @@ import { User } from './entity/User';
 import { CustomError } from './error-formatter';
 import { generateToken, verifyToken } from './token-manager';
 import { ReqHeader } from './context';
+import { Address } from './entity/Address';
 
 export const resolvers = {
   Query: {
@@ -14,19 +15,23 @@ export const resolvers = {
     },
     async user(_: any, args: any, context: ReqHeader) {
       const userRepository = getConnection().getRepository(User);
+      const addressRepository = getConnection().getRepository(Address);
       const reqToken: string = context.headers.authorization;
       verifyToken(reqToken, 'tokensecret');
       const user = await userRepository.findOne(args.id);
       if (!user) {
         throw new CustomError('User not found!', 404);
       }
-      return user;
+      const addressList = await addressRepository.find({ where: { userId: user.id } });
+      return { user: user, address: addressList };
     },
     async Users(_: any, args: any, context: ReqHeader) {
       const userRepository = getConnection().getRepository(User);
+      const addressRepository = getConnection().getRepository(Address);
       const reqToken: string = context.headers.authorization;
       let hasPreviousPage = false;
       let hasNextPage = false;
+      let userList = [];
       const userCount = await userRepository.count();
       verifyToken(reqToken, 'tokensecret');
 
@@ -43,10 +48,15 @@ export const resolvers = {
         .limit(args.first)
         .getMany();
 
+      for (let counter = 0; counter < users.length; counter++) {
+        const address = await addressRepository.find({ where: { userId: users[counter].id } });
+        userList.push({ user: users[counter], address: address });
+      }
+
       return {
         total: userCount,
         pageInfo: { hasPreviousPage: hasPreviousPage, hasNextPage: hasNextPage },
-        users: users,
+        users: userList,
       };
     },
   },
